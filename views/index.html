@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deconstruct.ai - Problem Breakdown & Routine</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #333; min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 15px; padding: 40px; box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+        header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #eee; }
+        h1 { color: #667eea; font-size: 2.2rem; margin-bottom: 8px; }
+        .subtitle { font-size: 1.05rem; opacity: 0.8; }
+        label { display: block; font-weight: 600; margin: 15px 0 5px; color: #555; }
+        textarea { width: 100%; height: 120px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; resize: vertical; }
+        .options { display: flex; gap: 15px; flex-wrap: wrap; }
+        .options > div { flex: 1; min-width: 180px; }
+        input[type="date"], select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
+        .btn { background: #667eea; color: white; padding: 14px 28px; border: none; border-radius: 8px; cursor: pointer; font-size: 1.05rem; transition: all 0.2s ease; }
+        .btn:hover { background: #5a6fd8; transform: translateY(-2px); }
+        .btn:disabled { background: #aaa; cursor: wait; transform: none; }
+        .btn-secondary { background: #6c757d; }
+        .actions { text-align: center; margin: 20px 0; }
+        .status { text-align: center; margin: 15px 0; font-weight: 600; display: none; }
+        .status.error { color: #dc3545; }
+        .status.loading { color: #667eea; }
+        .summary { background: #f0f4ff; border-radius: 10px; padding: 15px 20px; margin: 20px 0; display: flex; gap: 25px; flex-wrap: wrap; }
+        .summary strong { color: #667eea; }
+        .day-section { margin: 25px 0; }
+        .day-header { font-size: 1.15rem; color: #667eea; margin-bottom: 10px; font-weight: 700; }
+        .step { padding: 14px 16px; margin: 8px 0; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea; display: flex; align-items: flex-start; gap: 12px; }
+        .step.done { opacity: 0.55; border-left-color: #28a745; }
+        .step.done .step-title { text-decoration: line-through; }
+        .step input[type="checkbox"] { margin-top: 5px; width: 18px; height: 18px; cursor: pointer; }
+        .step-body { flex: 1; }
+        .step-title { font-weight: 600; }
+        .step-desc { color: #666; font-size: 0.95rem; margin-top: 3px; }
+        .step-meta { color: #888; font-size: 0.85rem; margin-top: 5px; }
+        .hidden { display: none; }
+        .history-item { padding: 12px 16px; background: #f8f9fa; border-radius: 8px; margin: 8px 0; cursor: pointer; border-left: 4px solid #764ba2; }
+        .history-item:hover { background: #eef0ff; }
+        .history-item .when { color: #999; font-size: 0.85rem; }
+        footer { text-align: center; padding: 25px 0 5px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Deconstruct.ai</h1>
+            <p class="subtitle">Give it a problem. It breaks it into smaller problems and builds you a routine.</p>
+        </header>
+
+        <section id="inputSection">
+            <label for="problemInput">Your problem</label>
+            <textarea id="problemInput" placeholder="e.g. Write a 10-page research paper on renewable energy..."></textarea>
+
+            <div class="options">
+                <div>
+                    <label for="dueDate">Deadline (optional)</label>
+                    <input type="date" id="dueDate">
+                </div>
+                <div>
+                    <label for="dailyMinutes">Time per day</label>
+                    <select id="dailyMinutes">
+                        <option value="30">30 min/day</option>
+                        <option value="60" selected>1 hour/day</option>
+                        <option value="120">2 hours/day</option>
+                        <option value="240">4 hours/day</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button id="deconstructBtn" class="btn">Break It Down</button>
+                <button id="clearBtn" class="btn btn-secondary">Clear</button>
+            </div>
+
+            <p id="status" class="status"></p>
+        </section>
+
+        <section id="resultSection" class="hidden">
+            <h2 id="resultTitle"></h2>
+            <div id="summary" class="summary"></div>
+            <div id="routineOutput"></div>
+            <div class="actions">
+                <button id="newProblemBtn" class="btn">New Problem</button>
+            </div>
+        </section>
+
+        <section id="historySection">
+            <h2>Recent Breakdowns</h2>
+            <div id="historyOutput"><p><em>No breakdowns yet.</em></p></div>
+        </section>
+
+        <footer>Deconstruct.ai &mdash; problem in, routine out.</footer>
+    </div>
+
+    <script>
+        const statusEl = document.getElementById('status');
+        const inputSection = document.getElementById('inputSection');
+        const resultSection = document.getElementById('resultSection');
+        const routineOutput = document.getElementById('routineOutput');
+        const summaryEl = document.getElementById('summary');
+        const resultTitle = document.getElementById('resultTitle');
+        const deconstructBtn = document.getElementById('deconstructBtn');
+        const historyOutput = document.getElementById('historyOutput');
+
+        function showStatus(text, type) {
+            statusEl.textContent = text;
+            statusEl.className = 'status ' + type;
+            statusEl.style.display = 'block';
+        }
+
+        function hideStatus() { statusEl.style.display = 'none'; }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+
+        function truncate(str, n) {
+            return str && str.length > n ? str.slice(0, n) + '...' : str;
+        }
+
+        // Core action: send the problem to the API
+        deconstructBtn.addEventListener('click', async () => {
+            const problem = document.getElementById('problemInput').value.trim();
+            const dueDate = document.getElementById('dueDate').value || null;
+            const dailyMinutes = parseInt(document.getElementById('dailyMinutes').value, 10);
+
+            if (problem.length < 3) {
+                showStatus('Please enter a problem first.', 'error');
+                return;
+            }
+
+            deconstructBtn.disabled = true;
+            showStatus('Thinking... breaking your problem into smaller ones...', 'loading');
+
+            try {
+                const res = await fetch('/api/deconstruct', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ problem, dueDate, dailyMinutes })
+                });
+                const data = await res.json();
+
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || 'Something went wrong.');
+                }
+
+                hideStatus();
+                renderResult(data);
+                loadHistory();
+            } catch (err) {
+                showStatus(err.message, 'error');
+            } finally {
+                deconstructBtn.disabled = false;
+            }
+        });
+
+        function renderResult(data) {
+            inputSection.classList.add('hidden');
+            resultSection.classList.remove('hidden');
+            resultTitle.textContent = data.problem;
+
+            const deadlineText = data.routine.fitsDeadline === false
+                ? '<span style="color:#dc3545">&#9888; Does not fit deadline</span>'
+                : data.routine.fitsDeadline === true
+                    ? '<span style="color:#28a745">&#10003; Fits deadline</span>' : '';
+
+            summaryEl.innerHTML =
+                `<div><strong>${data.steps.length}</strong> steps</div>` +
+                `<div><strong>${Math.round(data.routine.totalMinutes / 60 * 10) / 10}h</strong> total</div>` +
+                `<div><strong>${data.routine.daysNeeded}</strong> day(s)</div>` +
+                (deadlineText ? `<div>${deadlineText}</div>` : '');
+
+            routineOutput.innerHTML = data.routine.days.map(day => `
+                <div class="day-section">
+                    <div class="day-header">Day ${day.day} &mdash; ${day.date}</div>
+                    ${day.steps.map(step => `
+                        <div class="step ${step.status === 'done' ? 'done' : ''}" id="step-${step.stepOrder}">
+                            <input type="checkbox" ${step.status === 'done' ? 'checked' : ''}
+                                   onchange="toggleStep(${step.itemId || 0}, this, ${step.stepOrder})">
+                            <div class="step-body">
+                                <div class="step-title">${step.stepOrder}. ${escapeHtml(step.title)}</div>
+                                <div class="step-desc">${escapeHtml(step.description || '')}</div>
+                                <div class="step-meta">${step.startTime} &bull; ${step.durationMinutes} min</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
+        // Mark a step done/pending in the database
+        async function toggleStep(itemId, checkbox, stepOrder) {
+            const status = checkbox.checked ? 'done' : 'pending';
+            const stepEl = document.getElementById(`step-${stepOrder}`);
+            stepEl.classList.toggle('done', checkbox.checked);
+
+            try {
+                const res = await fetch(`/api/item/${itemId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                if (!res.ok) throw new Error();
+            } catch (err) {
+                checkbox.checked = !checkbox.checked; // revert on failure
+                stepEl.classList.toggle('done', checkbox.checked);
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/history');
+                const data = await res.json();
+                if (!data.success || !data.history.length) {
+                    historyOutput.innerHTML = '<p><em>No breakdowns yet.</em></p>';
+                    return;
+                }
+                historyOutput.innerHTML = data.history.map(h => `
+                    <div class="history-item" onclick="openTask(${h.id})">
+                        <div>${escapeHtml(truncate(h.problem, 90))}</div>
+                        <div class="when">${h.createdAt} &bull; ${h.steps.length} steps</div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                historyOutput.innerHTML = '<p><em>Could not load history.</em></p>';
+            }
+        }
+
+        async function openTask(taskId) {
+            showStatus('Loading...', 'loading');
+            try {
+                const res = await fetch(`/api/task/${taskId}`);
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Not found.');
+                hideStatus();
+
+                // Map DB rows into the shape renderResult expects
+                const steps = data.task.steps;
+                const days = [];
+                steps.forEach(s => {
+                    let day = days.find(d => d.date === s.assignedDay);
+                    if (!day) {
+                        day = { day: days.length + 1, date: s.assignedDay, steps: [] };
+                        days.push(day);
+                    }
+                    day.steps.push({
+                        itemId: s.id,
+                        stepOrder: s.stepOrder,
+                        title: s.title,
+                        description: s.description,
+                        durationMinutes: s.durationMinutes,
+                        startTime: s.startTime,
+                        status: s.status
+                    });
+                });
+
+                renderResult({
+                    problem: data.task.problem,
+                    steps,
+                    routine: {
+                        days,
+                        totalMinutes: steps.reduce((a, s) => a + s.durationMinutes, 0),
+                        daysNeeded: days.length,
+                        fitsDeadline: null
+                    }
+                });
+            } catch (err) {
+                showStatus(err.message, 'error');
+            }
+        }
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            document.getElementById('problemInput').value = '';
+            document.getElementById('dueDate').value = '';
+            hideStatus();
+        });
+
+        document.getElementById('newProblemBtn').addEventListener('click', () => {
+            resultSection.classList.add('hidden');
+            inputSection.classList.remove('hidden');
+            document.getElementById('problemInput').value = '';
+            hideStatus();
+        });
+
+        // Load history on page open
+        loadHistory();
+    </script>
+</body>
+</html>
