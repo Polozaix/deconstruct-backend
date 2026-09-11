@@ -38,26 +38,36 @@
 
 ## Quick start
 
+**Prerequisites:** Node.js 20+ and a PostgreSQL database (see step 2).
+
 1. **Install dependencies**
 
    ```bash
    npm install
    ```
 
-2. **Start a local database**
+2. **Get a PostgreSQL database** — pick whichever suits you:
 
+   **A. Cloud, no install (recommended if you don't have Docker)**
+   Create a free database at [Neon](https://neon.tech) or [Supabase](https://supabase.com)
+   and copy its connection string. Append `?sslmode=require` if it isn't already there.
+
+   **B. Local via Docker**
    ```bash
    docker compose up -d
    ```
+   Gives you `postgresql://deconstruct:deconstruct@localhost:5432/deconstruct?schema=public`.
 
 3. **Configure environment**
 
    ```bash
-   cp .env.example .env
+   cp .env.example .env      # Windows PowerShell: copy .env.example .env
    ```
 
-   Then set `GEMINI_API_KEY` (from Google AI Studio) and leave `DATABASE_URL` pointing at
-   the compose database.
+   Then set:
+   - `DATABASE_URL` — from step 2
+   - `GEMINI_API_KEY` (from Google AI Studio), **or** set `AI_PROVIDER=openrouter` plus
+     `OPENROUTER_API_KEY`
 
 4. **Create the schema**
 
@@ -72,6 +82,14 @@
    ```
 
    Open <http://localhost:3000>, type a problem, and hit **Break It Down**.
+
+   **Verify it's healthy:**
+   - <http://localhost:3000/health> — the process is up
+   - <http://localhost:3000/ready> — the database is reachable
+     *(this one returns 503 if step 2/3 isn't done yet)*
+
+   If `npm run dev` exits immediately, check the log: the most common causes are a missing
+   `DATABASE_URL` or an `.env` that wasn't created.
 
 ### Useful commands
 
