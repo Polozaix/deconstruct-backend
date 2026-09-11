@@ -10,9 +10,6 @@
     "start": "node dist/index.js",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:deploy": "prisma migrate deploy",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\""
   },
   "dependencies": {
@@ -28,7 +25,6 @@
     "openai": "^7.15.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
-    "prisma": "^6.19.3",
     "zod": "^4.6.2"
   },
   "devDependencies": {

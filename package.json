@@ -16,8 +16,11 @@
     "dev": "npm run build -w @deconstruct/shared && npm run build -w @deconstruct/scheduler && npm run dev -w @deconstruct/api",
     "test": "npm run test -w @deconstruct/scheduler && npm run test -w @deconstruct/api",
     "typecheck": "npm run typecheck -w @deconstruct/api",
-    "prisma:generate": "npm run prisma:generate -w @deconstruct/api",
-    "prisma:migrate": "npm run prisma:migrate -w @deconstruct/api",
-    "prisma:deploy": "npm run prisma:deploy -w @deconstruct/api"
+    "prisma:generate": "prisma generate --schema apps/api/prisma/schema.prisma",
+    "prisma:migrate": "prisma migrate dev --schema apps/api/prisma/schema.prisma",
+    "prisma:deploy": "prisma migrate deploy --schema apps/api/prisma/schema.prisma"
+  },
+  "dependencies": {
+    "prisma": "^6.19.3"
   }
 }

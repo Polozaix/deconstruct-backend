@@ -17,7 +17,7 @@ services:
     healthCheckPath: /health
     autoDeploy: true
     # Runs before each release, using the built image
-    preDeployCommand: npm run prisma:deploy -w @deconstruct/api
+    preDeployCommand: npm run prisma:deploy
     envVars:
       - key: NODE_ENV
         value: production

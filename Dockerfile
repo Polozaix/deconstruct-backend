@@ -24,14 +24,14 @@ COPY packages ./packages
 COPY apps ./apps
 
 # Generate Prisma Client and compile all TypeScript packages
-RUN npm run prisma:generate -w @deconstruct/api && npm run build
+RUN npm run prisma:generate && npm run build
 
 # Drop dev dependencies for a lean runtime image
 RUN npm prune --omit=dev
 
 # Re-generate after prune: `npm prune` can treat the generated client as
 # extraneous and remove it.
-RUN npm run prisma:generate -w @deconstruct/api
+RUN npm run prisma:generate
 
 # ---------------------------------------------------------------------------
 # Stage 2: runtime

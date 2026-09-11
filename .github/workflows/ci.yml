@@ -21,7 +21,10 @@ jobs:
         run: npm ci
 
       - name: Generate Prisma client
-        run: npm run prisma:generate -w @deconstruct/api
+        run: npm run prisma:generate
+        env:
+          # `prisma generate` only needs the datasource URL to be *present*.
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
 
       - name: Build
         run: npm run build
