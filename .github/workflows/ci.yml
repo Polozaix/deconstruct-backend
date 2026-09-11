@@ -21,7 +21,7 @@ jobs:
         run: npm ci
 
       - name: Generate Prisma client
-        run: npx prisma generate
+        run: npm run prisma:generate -w @deconstruct/api
 
       - name: Build
         run: npm run build
