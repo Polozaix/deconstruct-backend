@@ -1,6 +1,6 @@
 import { buildRoutine, type RoutineStep, type ScheduleInputStep } from '@deconstruct/scheduler';
 import { breakdownRepo, serializeTask, type SerializedTask } from '../repos/breakdownRepo';
-import { deconstructProblem } from './aiService';
+import { deconstructProblem } from './ai';
 import { logger } from '../logger';
 
 /** Single-user mode until Google auth lands in Phase 3. */

@@ -99,6 +99,28 @@
 `dailyMinutes` is a number (15–480) for the max work per day, or `"same"`/`0` to do it all
 in one day.
 
+## Choosing an AI provider
+
+The LLM is isolated behind `apps/api/src/services/ai/`, so the provider is a configuration
+choice rather than a code change. Set `AI_PROVIDER`:
+
+| `AI_PROVIDER` | Transport | Notes |
+|---|---|---|
+| `gemini` *(default)* | Native `@google/genai` | Uses a strict `responseSchema`, so the JSON shape is guaranteed by the API |
+| `openrouter` | OpenAI-compatible | Routes to any model OpenRouter serves. The same code also drives OpenAI, Groq, Together, or a local Ollama — just change `OPENROUTER_BASE_URL` |
+
+```bash
+# Switch to OpenRouter
+AI_PROVIDER=openrouter
+OPENROUTER_API_KEY=sk-or-...
+OPENROUTER_MODEL=google/gemini-2.5-flash
+```
+
+Because OpenRouter fronts models with varying structured-output support, the model response
+is always validated against `AiPlanSchema` (Zod) and **retried once** before it can reach the
+scheduler — a malformed plan can never corrupt a routine. Adding a provider means implementing
+one small `AiProvider` interface.
+
 ## Deploying to Render
 
 1. Push this repo to GitHub.
@@ -129,8 +151,9 @@ in one day.
 
 ## Tech
 
-Node.js + Express 5 · TypeScript · Prisma + PostgreSQL · Google Gemini
-(`gemini-3.6-flash`) · Zod · Pino · Vitest · Docker
+Node.js + Express 5 · TypeScript · Prisma + PostgreSQL · pluggable AI
+(Google Gemini via `@google/genai`, or OpenRouter / any OpenAI-compatible model) · Zod ·
+Pino · Vitest · Docker
 
 
 ## How It Works

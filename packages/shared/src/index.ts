@@ -46,3 +46,35 @@ export function normalizeDailyMinutes(value: unknown): number {
   if (Number.isNaN(parsed)) return 0;
   return Math.min(Math.max(parsed, DAILY_MINUTES_MIN), DAILY_MINUTES_MAX);
 }
+
+// ---------------------------------------------------------------------------
+// AI output contract
+//
+// Providers differ in how strictly they enforce structure, so the model's
+// response is always validated against these schemas before it reaches the
+// scheduler. Invalid output is retried instead of corrupting a plan.
+// ---------------------------------------------------------------------------
+
+export const AiTaskSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  description: z.string().trim().max(1000).default(''),
+  durationMinutes: z.coerce.number().int().min(5).max(480).default(30),
+});
+
+export const AiPhaseSchema = z.object({
+  phase: z.string().trim().min(1).max(120),
+  tasks: z.array(AiTaskSchema),
+});
+
+export const AiPlanSchema = z.object({
+  phases: z.array(AiPhaseSchema).min(1),
+});
+
+export type AiTask = z.infer<typeof AiTaskSchema>;
+export type AiPhase = z.infer<typeof AiPhaseSchema>;
+export type AiPlan = z.infer<typeof AiPlanSchema>;
+
+/** JSON shape the prompt asks every provider to return. */
+export const AI_PLAN_JSON_SHAPE =
+  '{"phases":[{"phase":"string","tasks":[{"title":"string","description":"string","durationMinutes":30}]}]}';
+

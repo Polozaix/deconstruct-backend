@@ -1,11 +1,11 @@
 import app from './app';
-import { env } from './env';
+import { aiModel, env } from './env';
 import { logger } from './logger';
 import { disconnectDb } from './db';
 
 const server = app.listen(env.PORT, () => {
   logger.info(
-    { port: env.PORT, env: env.NODE_ENV, model: env.GEMINI_MODEL },
+    { port: env.PORT, env: env.NODE_ENV, aiProvider: env.AI_PROVIDER, model: aiModel },
     'Deconstruct API started'
   );
 });

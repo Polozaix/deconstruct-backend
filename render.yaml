@@ -23,16 +23,23 @@ services:
         value: production
       - key: LOG_LEVEL
         value: info
+      - key: AI_PROVIDER
+        value: gemini
       - key: GEMINI_MODEL
         value: gemini-3.6-flash
+      - key: OPENROUTER_MODEL
+        value: google/gemini-2.5-flash
       - key: CORS_ORIGINS
         value: "*"
       - key: DATABASE_URL
         fromDatabase:
           name: deconstruct-db
           property: connectionString
-      # Set these in the Render dashboard (secrets are never committed)
+      # Set these in the Render dashboard (secrets are never committed).
+      # Provide the key for whichever AI_PROVIDER you select above.
       - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
         sync: false
       - key: SESSION_SECRET
         generateValue: true
