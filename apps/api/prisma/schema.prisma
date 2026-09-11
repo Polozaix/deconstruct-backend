@@ -1,0 +1,56 @@
+// Prisma schema for Deconstruct.
+// Phase 1 models the current product shape (projects -> tasks) on PostgreSQL.
+// Later phases add: availability rules, preferences, task dependencies,
+// schedule blocks with Google Calendar ids, OAuth tokens and a replan audit log.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id
+  email     String?   @unique
+  name      String?
+  timezone  String    @default("UTC")
+  createdAt DateTime  @default(now())
+  projects  Project[]
+}
+
+/// A "problem" the user asked to be broken down.
+model Project {
+  id           Int       @id @default(autoincrement())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem      String
+  dueDate      DateTime? @db.Date
+  dailyMinutes Int       @default(60)
+  status       String    @default("active")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  tasks        Task[]
+
+  @@index([userId, createdAt])
+}
+
+/// A decomposed step with its routine assignment.
+model Task {
+  id              Int       @id @default(autoincrement())
+  projectId       Int
+  project         Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  stepOrder       Int
+  phase           String?
+  title           String
+  description     String    @default("")
+  durationMinutes Int
+  status          String    @default("pending")
+  assignedDate    DateTime? @db.Date
+  startTime       String?
+  createdAt       DateTime  @default(now())
+
+  @@index([projectId, stepOrder])
+}

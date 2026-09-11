@@ -1,26 +1,23 @@
 {
-  "name": "deconstruct-backend",
+  "name": "deconstruct",
   "version": "1.0.0",
-  "description": "AI-powered problem breakdown and routine builder",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js"
+  "private": true,
+  "description": "AI problem deconstruction + schedule-aware routine builder (monorepo)",
+  "engines": {
+    "node": ">=20"
   },
-  "keywords": [
-    "ai",
-    "gemini",
-    "task-breakdown",
-    "scheduling"
+  "workspaces": [
+    "apps/*",
+    "packages/*"
   ],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "@google/genai": "^2.17.1",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "sqlite3": "^6.0.1"
+  "scripts": {
+    "build": "npm run build -w @deconstruct/shared && npm run build -w @deconstruct/scheduler && npm run build -w @deconstruct/api",
+    "start": "node apps/api/dist/index.js",
+    "dev": "npm run build -w @deconstruct/shared && npm run build -w @deconstruct/scheduler && npm run dev -w @deconstruct/api",
+    "test": "npm run test -w @deconstruct/scheduler && npm run test -w @deconstruct/api",
+    "typecheck": "npm run typecheck -w @deconstruct/api",
+    "prisma:generate": "npm run prisma:generate -w @deconstruct/api",
+    "prisma:migrate": "npm run prisma:migrate -w @deconstruct/api",
+    "prisma:deploy": "npm run prisma:deploy -w @deconstruct/api"
   }
 }
